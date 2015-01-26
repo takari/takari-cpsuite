@@ -1,6 +1,6 @@
 # ClasspathSuite
 
-Eclipse (3.4 and below) does not have support for JUnit testing in a multi project setting. This little tool tackles the problem for JUnit4 test classes and suites. Due to changes in JUnit there are two different versions out.
+Eclipse (3.4 and below) does not have support for JUnit testing in a multi project setting. This little tool tackles the problem for JUnit4 test classes and suites.
 
 Documentation:
 
