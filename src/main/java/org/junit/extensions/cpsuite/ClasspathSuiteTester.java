@@ -23,8 +23,8 @@ public class ClasspathSuiteTester implements ClassTester {
 
 	private final boolean searchInJars;
 	private final SuiteType[] suiteTypes;
-	private List<String> positiveFilters;
-	private List<String> negationFilters;
+	private List<JavaStyleClassnameMatcher> positiveFilters;
+	private List<JavaStyleClassnameMatcher> negationFilters;
 	private final Class<?>[] baseTypes;
 	private final Class<?>[] excludedBaseTypes;
 
@@ -140,8 +140,8 @@ public class ClasspathSuiteTester implements ClassTester {
 	}
 
 	private boolean acceptInNegationFilters(String className) {
-		for (String pattern : negationFilters) {
-			if (className.matches(pattern)) {
+		for (JavaStyleClassnameMatcher pattern : negationFilters) {
+			if (pattern.matches(className)) {
 				return false;
 			}
 		}
@@ -150,8 +150,8 @@ public class ClasspathSuiteTester implements ClassTester {
 
 	private boolean acceptInPositiveFilers(String className) {
 		boolean isPositiveAccepted = positiveFilters.isEmpty();
-		for (String pattern : positiveFilters) {
-			if (className.matches(pattern)) {
+		for (JavaStyleClassnameMatcher pattern : positiveFilters) {
+			if (pattern.matches(className)) {
 				isPositiveAccepted = true;
 				break;
 			} else {
@@ -161,23 +161,23 @@ public class ClasspathSuiteTester implements ClassTester {
 		return isPositiveAccepted;
 	}
 
-	private List<String> findPositiveFilters(String[] filterPatterns) {
-		List<String> filters = new ArrayList<String>();
+	private List<JavaStyleClassnameMatcher> findPositiveFilters(String[] filterPatterns) {
+		List<JavaStyleClassnameMatcher> filters = new ArrayList<JavaStyleClassnameMatcher>();
 		if (filterPatterns != null) {
 			for (String pattern : filterPatterns) {
 				if (!pattern.startsWith("!")) {
-					filters.add(pattern);
+					filters.add(new JavaStyleClassnameMatcher(pattern));
 				}
 			}
 		}
 		return filters;
 	}
 
-	private List<String> findNegationFilters(String[] filterPatterns) {
-		List<String> filters = new ArrayList<String>();
+	private List<JavaStyleClassnameMatcher> findNegationFilters(String[] filterPatterns) {
+		List<JavaStyleClassnameMatcher> filters = new ArrayList<JavaStyleClassnameMatcher>();
 		for (String pattern : filterPatterns) {
 			if (pattern.startsWith("!")) {
-				filters.add(pattern.substring(1));
+				filters.add(new JavaStyleClassnameMatcher(pattern.substring(1)));
 			}
 		}
 		return filters;
@@ -191,11 +191,11 @@ public class ClasspathSuiteTester implements ClassTester {
 		return searchInJars;
 	}
 
-	public List<String> getPositiveClassnameFilters() {
+	public List<JavaStyleClassnameMatcher> getPositiveClassnameFilters() {
 		return positiveFilters;
 	}
 
-	public List<String> getNegationClassnameFilters() {
+	public List<JavaStyleClassnameMatcher> getNegationClassnameFilters() {
 		return negationFilters;
 	}
 
