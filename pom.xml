@@ -15,9 +15,10 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.8.2</version>
+      <version>4.12</version>
+      <scope>compile</scope>
     </dependency>
-  </dependencies>  
+  </dependencies>
   
   <build>
     <plugins>
@@ -26,6 +27,13 @@
         <artifactId>takari-lifecycle-plugin</artifactId>
         <version>1.10.1</version>
         <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+        </configuration>
       </plugin>
     </plugins>
   </build>  
