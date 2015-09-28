@@ -99,6 +99,8 @@ public class ClasspathClassesFinder implements ClassesFinder {
 				// ignore not instantiable classes
 			} catch (UnsatisfiedLinkError ule) {
 				// ignore not instantiable classes
+			} catch (IllegalAccessError iae) {
+				// ignore not instantiable classes
 			}
 		}
 	}
