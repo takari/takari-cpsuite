@@ -84,7 +84,7 @@ public class ClasspathClassesFinder implements ClassesFinder {
 				continue;
 			}
 			try {
-				Class<?> clazz = Class.forName(className);
+				Class<?> clazz = Class.forName(className, false, getClass().getClassLoader());
 				if (clazz == null || clazz.isLocalClass() || clazz.isAnonymousClass()) {
 					continue;
 				}
