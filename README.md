@@ -4,10 +4,23 @@ Eclipse (3.4 and below) does not have support for JUnit testing in a multi proje
 
 Documentation:
 
+*   [Getting it](#getting)
 *   [How to use it](#howto)
 *   [Release Notes](#changes)
 *   [Open Issues](#issues)
 *   [Report a bug or ask for a feature](mailto:cpsuite@johanneslink.net)
+*   
+
+### <a name="getting"></a> Getting it
+
+ClassPathSuite is available via Maven:
+````
+<dependency>
+    <groupId>io.takari.junit</groupId>
+    <artifactId>takari-cpsuite</artifactId>
+    <version>1.2.7</version>
+</dependency>
+````
 
 ### <a name="howto"></a>How to Use It
 
