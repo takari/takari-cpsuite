@@ -27,6 +27,7 @@ public class ClasspathSuiteTester implements ClassTester {
 	private List<JavaStyleClassnameMatcher> negationFilters;
 	private final Class<?>[] baseTypes;
 	private final Class<?>[] excludedBaseTypes;
+	private final boolean useClasspathFromJars;
 
 	/**
 	 * @param searchInJars
@@ -40,13 +41,14 @@ public class ClasspathSuiteTester implements ClassTester {
 	 * @param types
 	 */
 	public ClasspathSuiteTester(boolean searchInJars, String[] filterPatterns, SuiteType[] suiteTypes, Class<?>[] baseTypes,
-			Class<?>[] excludedBaseTypes) {
+			Class<?>[] excludedBaseTypes, final boolean useClasspathFromJars) {
 		this.searchInJars = searchInJars;
 		this.positiveFilters = findPositiveFilters(filterPatterns);
 		this.negationFilters = findNegationFilters(filterPatterns);
 		this.suiteTypes = suiteTypes;
 		this.baseTypes = baseTypes;
 		this.excludedBaseTypes = excludedBaseTypes;
+		this.useClasspathFromJars = useClasspathFromJars;
 	}
 
 	public boolean acceptClass(Class<?> clazz) {
@@ -210,4 +212,9 @@ public class ClasspathSuiteTester implements ClassTester {
 	public Class<?>[] getExcludedBaseTypes() {
 		return excludedBaseTypes;
 	}
+
+	@Override
+  	public boolean useClasspathFromJars() {
+		return this.useClasspathFromJars;
+  	}
 }
