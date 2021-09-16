@@ -6,7 +6,9 @@
 package org.junit.extensions.cpsuite;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
+import java.util.jar.*;
 
 /**
  * Utility class to find classes within the class path, both inside and outside
@@ -40,10 +42,57 @@ public class ClasspathClassesFinder implements ClassesFinder {
 		return classPath;
 	}
 
-	private List<Class<?>> findClassesInClasspath(String classPath) {
-		return findClassesInRoots(splitClassPath(classPath));
+	private List<Class<?>> findClassesInClasspath(final String classPath) {
+    	List<String> classpathRoots = splitClassPath(classPath);
+    	if (this.tester.useClasspathFromJars()) {
+      		classpathRoots = findAndAddClasspathFromJars(classpathRoots);
+    	}
+    	return findClassesInRoots(classpathRoots);
 	}
 
+	private List<String> findAndAddClasspathFromJars(final List<String> classpathRoots)
+	{
+		List<String> allRoots = new ArrayList<>(100);
+		allRoots.addAll(classpathRoots);
+  		
+		for (String root : classpathRoots) {
+			File classpathFile = new File(root);
+			if (isJarFile(classpathFile)) {
+				Manifest manifest = null;
+				try (URLClassLoader cl = new URLClassLoader(new URL[] { classpathFile.toURI().toURL() })) {
+					URL url = cl.findResource("META-INF/MANIFEST.MF");
+					if (url != null) {
+						try (InputStream inputStream = url.openStream()) {
+							manifest = new Manifest(inputStream);
+						}
+					}
+				} catch (IOException e) {
+					// ignore errors and just continue (manifest will be null, so this entry is just ignored)
+				}
+				if (manifest != null) {
+					Attributes attr = manifest.getMainAttributes();
+					String classPath = attr.getValue("Class-Path");
+					if (classPath != null) {
+						Collection<? extends String> segments = splitClassPathFromManifest(classPath);
+						for (String segment : segments) {
+							File relativeFile = new File(classpathFile.getParentFile(), segment);
+							try	{
+								allRoots.add(relativeFile.getCanonicalPath());
+							} catch (IOException e)	{
+								// just ignore the failure
+							}
+						}
+					}
+				}
+			}
+		}
+		return allRoots;
+	}
+
+	private Collection<? extends String> splitClassPathFromManifest(final String classPath) {
+		return Arrays.asList(classPath.split(" "));
+	}
+	
 	private List<Class<?>> findClassesInRoots(List<String> roots) {
 		List<Class<?>> classes = new ArrayList<Class<?>>(100);
 		for (String root : roots) {

@@ -21,6 +21,7 @@ public class ClasspathSuite extends Suite {
 	private static final Class<?>[] DEFAULT_EXCLUDED_BASES_TYPES = new Class<?>[0];
 	private static final String[] DEFAULT_CLASSNAME_FILTERS = new String[0];
 	private static final String DEFAULT_CLASSPATH_PROPERTY = "java.class.path";
+    private static final boolean DEFAULT_USE_CLASSPATH_FROM_JARS = false;
 
 	private final Class<?> suiteClass;
 
@@ -95,6 +96,21 @@ public class ClasspathSuite extends Suite {
 	}
 
 	/**
+	 * The <code>UseClasspathFromJars</code> annotation specifies if the Class-Path headers in the Manifest of Jars on the classpath shall be added to the search
+	 * space or not. If the annotation is missing, the Class-Path header will be ignored.
+	 *
+	 * Some IDEs (e.g., Eclipse) can use a temporary empty Jar with the Class-Path in the Manifest to work around limitations of long classpaths. Set this
+	 * annotation to <code>true</code> to support this workaround for the test suite.
+	 *
+	 * Note: only Jars on the original classpath are considered; i.e., the Jar Manifest analysis is not transitive.
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.TYPE)
+	public @interface UseClasspathFromJars {
+		boolean value();
+	}
+
+	/**
 	 * The <code>BeforeSuite</code> marks a method that will be run before the
 	 * suite is run.
 	 */
@@ -120,7 +136,7 @@ public class ClasspathSuite extends Suite {
 
 	private static ClassesFinder createFinder(Class<?> suiteClass, ClassesFinderFactory finderFactory) {
 		return finderFactory.create(getSearchInJars(suiteClass), getClassnameFilters(suiteClass), getSuiteTypes(suiteClass),
-				getBaseTypes(suiteClass), getExcludedBaseTypes(suiteClass), getClasspathProperty(suiteClass));
+				getBaseTypes(suiteClass), getExcludedBaseTypes(suiteClass), getClasspathProperty(suiteClass), getUseClasspathFromJars(suiteClass));
 	}
 
 	private static Class<?>[] getSortedTestclasses(ClassesFinder finder) {
@@ -183,6 +199,14 @@ public class ClasspathSuite extends Suite {
 			return DEFAULT_CLASSPATH_PROPERTY;
 		}
 		return cpPropertyAnnotation.value();
+	}
+
+	private static boolean getUseClasspathFromJars(final Class<?> suiteClass) {
+    	UseClasspathFromJars useClasspathFromJarsAnnotation = suiteClass.getAnnotation(UseClasspathFromJars.class);
+    	if (useClasspathFromJarsAnnotation == null) {
+			return DEFAULT_USE_CLASSPATH_FROM_JARS;
+		}
+		return useClasspathFromJarsAnnotation.value();
 	}
 
 	@Override

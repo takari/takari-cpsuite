@@ -23,4 +23,8 @@ public class AcceptAllTester implements ClassTester {
 		return true;
 	}
 
+	@Override
+    public boolean useClasspathFromJars() {
+        return true;
+    }
 }

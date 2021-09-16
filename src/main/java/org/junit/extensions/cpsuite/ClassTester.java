@@ -13,4 +13,6 @@ public interface ClassTester {
 	boolean acceptInnerClass();
 
 	boolean searchInJars();
+
+	boolean useClasspathFromJars();
 }
