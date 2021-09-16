@@ -9,7 +9,6 @@ Documentation:
 *   [Release Notes](#changes)
 *   [Open Issues](#issues)
 *   [Report a bug or ask for a feature](mailto:cpsuite@johanneslink.net)
-*   
 
 ### <a name="getting"></a> Getting it
 
@@ -152,6 +151,22 @@ If you want to use ClasspathSuite via Ant, you sometimes have the need to search
 By default, the classpath that can be retrieved via `System.getProperty("java.class.path")` will be searched. Using this annotation allows you to point ClasspathSuite at the directories and jar files of your choice. 
 
 In case the given property is not set, `java.class.path` is used as fallback value. This allows you to use the same annotated suite in both Ant and non-Ant context. 
+
+#### <a name="useClasspathFromJars"></a>Use Classpath From Jars Annotation
+
+Eclipse (and other IDEs) contain an option to work around limitations for long classpaths by creating an empty JAR file
+with a Manifest that contains the (otherwise too long) classpath.
+
+If you want to use this feature, you need to add the `UseClasspathFromJars` annotation:
+
+```java
+@UseClasspathFromJars(true)
+```
+By default this feature is set to `false` and no additional scanning of JAR files is performed. If you set this 
+annotation to `true`, all JAR files on the initial classpath are opened and the classpath from the `Class-Path` 
+header in the Manifest is added to the classpath as well. (Note that this is not transitive, i.e., if such a
+classpath from a JAR Manifest points to yet another JAR, that second JAR will never be checked for additional
+classpath entries!)
 
 #### <a name="beforeSuite"></a>BeforeSuite
 
