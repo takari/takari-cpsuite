@@ -24,6 +24,7 @@ import java.util.List;
 public class ClasspathSuite extends Suite {
 
 	private static final boolean DEFAULT_INCLUDE_JARS = false;
+	private static final boolean DEFAULT_EXCLUDE_DUP = false;
 	private static final SuiteType[] DEFAULT_SUITE_TYPES = new SuiteType[] { SuiteType.TEST_CLASSES };
 	private static final Class<?>[] DEFAULT_BASE_TYPES = new Class<?>[] { Object.class };
 	private static final Class<?>[] DEFAULT_EXCLUDED_BASES_TYPES = new Class<?>[0];
@@ -66,6 +67,19 @@ public class ClasspathSuite extends Suite {
 	@Target(ElementType.TYPE)
 	public @interface IncludeJars {
 		public boolean value();
+	}
+
+	/**
+	 * The <code>ExcludeDuplicated</code> annotation specifies if duplicated
+	 * classes should be excluded or not (true means only one class is kept,
+	 * other ones with duplicated class names are pruned from results).
+	 * If the annotation is missing or set to false, duplicated classes are
+	 * not being checked.
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.TYPE)
+	public @interface ExcludeDuplicated {
+		boolean value();
 	}
 
 	/**
@@ -141,7 +155,8 @@ public class ClasspathSuite extends Suite {
 
 	private static ClassesFinder createFinder(Class<?> suiteClass, ClassesFinderFactory finderFactory) {
 		return finderFactory.create(getSearchInJars(suiteClass), getClassnameFilters(suiteClass), getClasspathFilters(suiteClass),
-                getSuiteTypes(suiteClass), getBaseTypes(suiteClass), getExcludedBaseTypes(suiteClass), getClasspathProperty(suiteClass));
+                getSuiteTypes(suiteClass), getBaseTypes(suiteClass), getExcludedBaseTypes(suiteClass), getClasspathProperty(suiteClass),
+				getExcludeDuplicated(suiteClass));
 	}
 
 	private static Class<?>[] getSortedTestclasses(ClassesFinder finder) {
@@ -180,6 +195,14 @@ public class ClasspathSuite extends Suite {
 			return DEFAULT_INCLUDE_JARS;
 		}
 		return includeJarsAnnotation.value();
+	}
+
+	private static boolean getExcludeDuplicated(Class<?> suiteClass) {
+		ExcludeDuplicated excludeDuplicatedAnnotation = suiteClass.getAnnotation(ExcludeDuplicated.class);
+		if (excludeDuplicatedAnnotation == null) {
+			return DEFAULT_EXCLUDE_DUP;
+		}
+		return excludeDuplicatedAnnotation.value();
 	}
 
 	private static SuiteType[] getSuiteTypes(Class<?> suiteClass) {

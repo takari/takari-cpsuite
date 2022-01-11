@@ -70,6 +70,19 @@ Negation expressions are preceded by a "!". In the previous example all tests th
 
 You can have as many positive and negative filters as you like. The positve filters still work disjunctively whereas the negated filters will subtract all matching tests after the maximum set of tests to run has been determined. Having only negated filters starts with the full set of tests.
 
+#### Duplicated Classes
+
+In some occasional cases, there may be multiple same / duplicated test classes in your classpath, which will cause some unexpected and vulnerable behavior to your test suites (e.g. using [build-helper-maven-plugin](https://www.mojohaus.org/build-helper-maven-plugin/add-test-source-mojo.html) to compile).
+
+You can use the following annotation to prune duplicated cases in your suite: only one of the same classes is kept (the first one being scanned with the same full classname):
+
+```java
+import org.junit.extensions.cpsuite.ClasspathSuite.*;
+...
+@ExcludeDuplicated(true)
+public class MySuite...
+```
+
 #### Abstract Test Classes
 
 [ClasspathSuite](http://johanneslink.net/projects/cpsuite.jsp) solves another problem (bug?) in the JUnit 4 integration of Eclipse 3.2: test classes derived from an abstract test class which do not have test methods of their own are being ignored by Eclipse's test runner. When using `RunWith(ClasspathSuite.class)` you will catch those test classes as well.
