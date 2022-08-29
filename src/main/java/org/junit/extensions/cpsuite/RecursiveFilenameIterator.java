@@ -6,7 +6,10 @@
 package org.junit.extensions.cpsuite;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * This class provides an iterator over all file names in a directory and its

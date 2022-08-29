@@ -5,8 +5,11 @@
  */
 package org.junit.extensions.cpsuite;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Utility class to find classes within the class path, both inside and outside
@@ -15,7 +18,8 @@ import java.util.*;
  * 
  * It's originally evolved out of ClassPathTestCollector in JUnit 3.8.1
  */
-public class ClasspathClassesFinder implements ClassesFinder {
+public class ClasspathClassesFinder implements ClassesFinder
+{
 
 	private static final int CLASS_SUFFIX_LENGTH = ".class".length();
 	private static final String FALLBACK_CLASSPATH_PROPERTY = "java.class.path";
@@ -54,16 +58,19 @@ public class ClasspathClassesFinder implements ClassesFinder {
 
 	private void gatherClassesInRoot(File classRoot, List<Class<?>> classes) {
 		Iterable<String> relativeFilenames = new NullIterator<String>();
-		if (tester.searchInJars() && isJarFile(classRoot)) {
-			try {
-				relativeFilenames = new JarFilenameIterator(classRoot);
-			} catch (IOException e) {
-				// Don't iterate unavailable ja files
-				e.printStackTrace();
-			}
-		} else if (classRoot.isDirectory()) {
-			relativeFilenames = new RecursiveFilenameIterator(classRoot);
-		}
+        if (tester.acceptClassRoot(classRoot.getAbsolutePath())) {
+            if (tester.searchInJars() && isJarFile(classRoot)) {
+                try {
+                    relativeFilenames = new JarFilenameIterator(classRoot);
+                } catch (IOException e) {
+                    // Don't iterate unavailable ja files
+                    e.printStackTrace();
+                }
+            }
+            else if (classRoot.isDirectory()) {
+                relativeFilenames = new RecursiveFilenameIterator(classRoot);
+            }
+        }
 		gatherClasses(classes, relativeFilenames);
 	}
 

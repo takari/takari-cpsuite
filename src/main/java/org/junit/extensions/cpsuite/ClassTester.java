@@ -10,6 +10,8 @@ public interface ClassTester {
 
 	boolean acceptClassName(String className);
 
+	boolean acceptClassRoot(String classRoot);
+
 	boolean acceptInnerClass();
 
 	boolean searchInJars();

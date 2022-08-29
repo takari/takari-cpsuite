@@ -5,13 +5,15 @@
  */
 package org.junit.extensions.cpsuite;
 
-import java.lang.reflect.*;
-import java.util.*;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * ClassTester implementation to retrieve JUnit38 & 4.x test classes in the
@@ -19,13 +21,17 @@ import org.junit.runner.RunWith;
  * you can give a set of regex expression to specify the class names to include.
  * 
  */
-public class ClasspathSuiteTester implements ClassTester {
+public class ClasspathSuiteTester implements ClassTester
+{
 
 	private final boolean searchInJars;
 	private final SuiteType[] suiteTypes;
 	private List<JavaStyleClassnameMatcher> positiveFilters;
 	private List<JavaStyleClassnameMatcher> negationFilters;
-	private final Class<?>[] baseTypes;
+    private List<JavaStyleClasspathMatcher> positiveClasspathFilters;
+    private List<JavaStyleClasspathMatcher> negationClasspathFilters;
+
+    private final Class<?>[] baseTypes;
 	private final Class<?>[] excludedBaseTypes;
 
 	/**
@@ -37,13 +43,16 @@ public class ClasspathSuiteTester implements ClassTester {
 	 *            all test classes in all packages.
 	 * @param baseTypes
 	 *            TODO
-	 * @param types
+	 * @param excludedBaseTypes
+     *            TODO
 	 */
-	public ClasspathSuiteTester(boolean searchInJars, String[] filterPatterns, SuiteType[] suiteTypes, Class<?>[] baseTypes,
+	public ClasspathSuiteTester(boolean searchInJars, String[] filterPatterns, String[] classpathFilterPatterns, SuiteType[] suiteTypes, Class<?>[] baseTypes,
 			Class<?>[] excludedBaseTypes) {
 		this.searchInJars = searchInJars;
 		this.positiveFilters = findPositiveFilters(filterPatterns);
 		this.negationFilters = findNegationFilters(filterPatterns);
+        this.positiveClasspathFilters = findPositiveClasspathFilters(classpathFilterPatterns);
+        this.negationClasspathFilters = findNegationClasspathFilters(classpathFilterPatterns);
 		this.suiteTypes = suiteTypes;
 		this.baseTypes = baseTypes;
 		this.excludedBaseTypes = excludedBaseTypes;
@@ -133,13 +142,22 @@ public class ClasspathSuiteTester implements ClassTester {
 	}
 
 	public boolean acceptClassName(String className) {
-		if (!acceptInPositiveFilers(className)) {
+		if (!acceptInPositiveFilters(className)) {
 			return false;
 		}
 		return acceptInNegationFilters(className);
 	}
 
-	private boolean acceptInNegationFilters(String className) {
+    @Override
+    public boolean acceptClassRoot(final String classRoot)
+    {
+        if (!acceptInPositiveClasspathFilters(classRoot)) {
+            return false;
+        }
+        return acceptInNegationClasspathFilters(classRoot);
+    }
+
+    private boolean acceptInNegationFilters(String className) {
 		for (JavaStyleClassnameMatcher pattern : negationFilters) {
 			if (pattern.matches(className)) {
 				return false;
@@ -148,7 +166,7 @@ public class ClasspathSuiteTester implements ClassTester {
 		return true;
 	}
 
-	private boolean acceptInPositiveFilers(String className) {
+	private boolean acceptInPositiveFilters(String className) {
 		boolean isPositiveAccepted = positiveFilters.isEmpty();
 		for (JavaStyleClassnameMatcher pattern : positiveFilters) {
 			if (pattern.matches(className)) {
@@ -160,6 +178,28 @@ public class ClasspathSuiteTester implements ClassTester {
 		}
 		return isPositiveAccepted;
 	}
+
+    private boolean acceptInNegationClasspathFilters(String className) {
+        for (JavaStyleClasspathMatcher pattern : negationClasspathFilters) {
+            if (pattern.matches(className)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean acceptInPositiveClasspathFilters(String className) {
+        boolean isPositiveAccepted = positiveClasspathFilters.isEmpty();
+        for (JavaStyleClasspathMatcher pattern : positiveClasspathFilters) {
+            if (pattern.matches(className)) {
+                isPositiveAccepted = true;
+                break;
+            } else {
+                isPositiveAccepted = false;
+            }
+        }
+        return isPositiveAccepted;
+    }
 
 	private List<JavaStyleClassnameMatcher> findPositiveFilters(String[] filterPatterns) {
 		List<JavaStyleClassnameMatcher> filters = new ArrayList<JavaStyleClassnameMatcher>();
@@ -182,6 +222,28 @@ public class ClasspathSuiteTester implements ClassTester {
 		}
 		return filters;
 	}
+
+    private List<JavaStyleClasspathMatcher> findPositiveClasspathFilters(String[] filterPatterns) {
+        List<JavaStyleClasspathMatcher> filters = new ArrayList<JavaStyleClasspathMatcher>();
+        if (filterPatterns != null) {
+            for (String pattern : filterPatterns) {
+                if (!pattern.startsWith("!")) {
+                    filters.add(new JavaStyleClasspathMatcher(pattern));
+                }
+            }
+        }
+        return filters;
+    }
+
+    private List<JavaStyleClasspathMatcher> findNegationClasspathFilters(String[] filterPatterns) {
+        List<JavaStyleClasspathMatcher> filters = new ArrayList<JavaStyleClasspathMatcher>();
+        for (String pattern : filterPatterns) {
+            if (pattern.startsWith("!")) {
+                filters.add(new JavaStyleClasspathMatcher(pattern.substring(1)));
+            }
+        }
+        return filters;
+    }
 
 	public boolean acceptInnerClass() {
 		return true;

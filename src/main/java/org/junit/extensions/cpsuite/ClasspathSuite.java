@@ -5,13 +5,21 @@
  */
 package org.junit.extensions.cpsuite;
 
-import java.lang.annotation.*;
-import java.lang.reflect.*;
-import java.util.*;
-
-import org.junit.runner.notification.*;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Suite;
-import org.junit.runners.model.*;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.RunnerBuilder;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class ClasspathSuite extends Suite {
 
@@ -20,6 +28,7 @@ public class ClasspathSuite extends Suite {
 	private static final Class<?>[] DEFAULT_BASE_TYPES = new Class<?>[] { Object.class };
 	private static final Class<?>[] DEFAULT_EXCLUDED_BASES_TYPES = new Class<?>[0];
 	private static final String[] DEFAULT_CLASSNAME_FILTERS = new String[0];
+	private static final String[] DEFAULT_CLASSPATH_FILTERS = new String[0];
 	private static final String DEFAULT_CLASSPATH_PROPERTY = "java.class.path";
 
 	private final Class<?> suiteClass;
@@ -36,7 +45,19 @@ public class ClasspathSuite extends Suite {
 		public String[] value();
 	}
 
-	/**
+    /**
+     * The <code>ClassnameFilters</code> annotation specifies a set of regex
+     * expressions for all test classes (ie. their qualified names) to include
+     * in the test run. When the annotation is missing, all test classes in all
+     * packages will be run.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public @interface ClasspathFilters {
+        public String[] value();
+    }
+
+    /**
 	 * The <code>IncludeJars</code> annotation specifies if Jars should be
 	 * searched in or not. If the annotation is missing Jars are not being
 	 * searched.
@@ -119,8 +140,8 @@ public class ClasspathSuite extends Suite {
 	}
 
 	private static ClassesFinder createFinder(Class<?> suiteClass, ClassesFinderFactory finderFactory) {
-		return finderFactory.create(getSearchInJars(suiteClass), getClassnameFilters(suiteClass), getSuiteTypes(suiteClass),
-				getBaseTypes(suiteClass), getExcludedBaseTypes(suiteClass), getClasspathProperty(suiteClass));
+		return finderFactory.create(getSearchInJars(suiteClass), getClassnameFilters(suiteClass), getClasspathFilters(suiteClass),
+                getSuiteTypes(suiteClass), getBaseTypes(suiteClass), getExcludedBaseTypes(suiteClass), getClasspathProperty(suiteClass));
 	}
 
 	private static Class<?>[] getSortedTestclasses(ClassesFinder finder) {
@@ -144,6 +165,14 @@ public class ClasspathSuite extends Suite {
 		}
 		return filtersAnnotation.value();
 	}
+
+    private static String[] getClasspathFilters(Class<?> suiteClass) {
+        ClasspathFilters filtersAnnotation = suiteClass.getAnnotation(ClasspathFilters.class);
+        if (filtersAnnotation == null) {
+            return DEFAULT_CLASSPATH_FILTERS;
+        }
+        return filtersAnnotation.value();
+    }
 
 	private static boolean getSearchInJars(Class<?> suiteClass) {
 		IncludeJars includeJarsAnnotation = suiteClass.getAnnotation(IncludeJars.class);
