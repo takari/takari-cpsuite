@@ -5,13 +5,20 @@
  */
 package org.junit.extensions.cpsuite;
 
-public class AcceptAllTester implements ClassTester {
+public class AcceptAllTester implements ClassTester
+{
 
 	public boolean acceptClassName(String className) {
 		return true;
 	}
 
-	public boolean acceptInnerClass() {
+    @Override
+    public boolean acceptClassRoot(final String classRoot)
+    {
+        return true;
+    }
+
+    public boolean acceptInnerClass() {
 		return true;
 	}
 

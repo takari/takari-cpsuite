@@ -5,7 +5,8 @@
  */
 package org.junit.extensions.cpsuite;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class NullIterator<T> implements Iterable<T>, Iterator<T> {
 

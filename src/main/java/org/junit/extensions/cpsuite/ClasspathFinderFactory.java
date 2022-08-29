@@ -5,11 +5,11 @@
  */
 package org.junit.extensions.cpsuite;
 
-public class ClasspathFinderFactory implements ClassesFinderFactory {
-
-	public ClassesFinder create(boolean searchInJars, String[] filterPatterns, SuiteType[] suiteTypes, Class<?>[] baseTypes,
+public class ClasspathFinderFactory implements ClassesFinderFactory
+{
+	public ClassesFinder create(boolean searchInJars, String[] filterPatterns, String[] classpathFilterPatterns, SuiteType[] suiteTypes, Class<?>[] baseTypes,
 			Class<?>[] excludedBaseTypes, String classpathProperty) {
-		ClassTester tester = new ClasspathSuiteTester(searchInJars, filterPatterns, suiteTypes, baseTypes, excludedBaseTypes);
+		ClassTester tester = new ClasspathSuiteTester(searchInJars, filterPatterns, classpathFilterPatterns, suiteTypes, baseTypes, excludedBaseTypes);
 		return new ClasspathClassesFinder(tester, classpathProperty);
 	}
 
