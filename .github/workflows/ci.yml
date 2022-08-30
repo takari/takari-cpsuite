@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stop old builds
+        if: github.ref != 'refs/heads/master'
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+      - name: Set up JDK
+        uses: actions/setup-java@v2.3.1
+        with:
+          distribution: 'temurin'
+          java-version: 11
+          cache: maven
+      - name: Build & Test
+        run: ./mvnw -B install
