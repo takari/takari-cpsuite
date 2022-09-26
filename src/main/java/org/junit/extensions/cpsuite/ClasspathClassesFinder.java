@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class to find classes within the class path, both inside and outside
@@ -28,9 +30,12 @@ public class ClasspathClassesFinder implements ClassesFinder
 
 	private final String classpathProperty;
 
-	public ClasspathClassesFinder(ClassTester tester, String classpathProperty) {
+	private final boolean excludeDuplicated;
+
+	public ClasspathClassesFinder(ClassTester tester, String classpathProperty, boolean excludeDuplicated) {
 		this.tester = tester;
 		this.classpathProperty = classpathProperty;
+		this.excludeDuplicated = excludeDuplicated;
 	}
 
 	public List<Class<?>> find() {
@@ -50,13 +55,15 @@ public class ClasspathClassesFinder implements ClassesFinder
 
 	private List<Class<?>> findClassesInRoots(List<String> roots) {
 		List<Class<?>> classes = new ArrayList<Class<?>>(100);
+		Set<String> classNames = null; // by default no hashmap for efficiency
+		if (excludeDuplicated) classNames = new HashSet<String>(100);
 		for (String root : roots) {
-			gatherClassesInRoot(new File(root), classes);
+			gatherClassesInRoot(new File(root), classes, classNames);
 		}
 		return classes;
 	}
 
-	private void gatherClassesInRoot(File classRoot, List<Class<?>> classes) {
+	private void gatherClassesInRoot(File classRoot, List<Class<?>> classes, Set<String> classNames) {
 		Iterable<String> relativeFilenames = new NullIterator<String>();
         if (tester.acceptClassRoot(classRoot.getAbsolutePath())) {
             if (tester.searchInJars() && isJarFile(classRoot)) {
@@ -71,14 +78,14 @@ public class ClasspathClassesFinder implements ClassesFinder
                 relativeFilenames = new RecursiveFilenameIterator(classRoot);
             }
         }
-		gatherClasses(classes, relativeFilenames);
+		gatherClasses(classes, relativeFilenames, classNames);
 	}
 
 	private boolean isJarFile(File classRoot) {
 		return classRoot.getName().endsWith(".jar") || classRoot.getName().endsWith(".JAR");
 	}
 
-	private void gatherClasses(List<Class<?>> classes, Iterable<String> filenamesIterator) {
+	private void gatherClasses(List<Class<?>> classes, Iterable<String> filenamesIterator, Set<String> classNames) {
 		for (String fileName : filenamesIterator) {
 			if (!isClassFile(fileName)) {
 				continue;
@@ -92,11 +99,12 @@ public class ClasspathClassesFinder implements ClassesFinder
 			}
 			try {
 				Class<?> clazz = Class.forName(className, false, getClass().getClassLoader());
-				if (clazz == null || clazz.isLocalClass() || clazz.isAnonymousClass()) {
+				if (clazz == null || clazz.isLocalClass() || clazz.isAnonymousClass() || hasDuplicatedClassName(classNames, clazz)) {
 					continue;
 				}
 				if (tester.acceptClass(clazz)) {
 					classes.add(clazz);
+					addClassName(classNames, clazz.getName());
 				}
 			} catch (ClassNotFoundException cnfe) {
 				// ignore not instantiable classes
@@ -108,6 +116,16 @@ public class ClasspathClassesFinder implements ClassesFinder
 				// ignore not instantiable classes
 			}
 		}
+	}
+
+	private void addClassName(Set<String> classNames, String className) {
+		if (classNames != null) { // only check if hashmap initialized
+			classNames.add(className);
+		}
+	}
+
+	private boolean hasDuplicatedClassName(Set<String> classNames, Class<?> clazz) {
+		return classNames != null && classNames.contains(clazz.getName());
 	}
 
 	private boolean isInnerClass(String className) {
