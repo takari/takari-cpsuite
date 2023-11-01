@@ -39,7 +39,7 @@ final class JavaStyleClassnameMatcher {
 				result.add(input.substring(start, matcher.start()));
 			}
 			result.add(matcher.group());
-			start = matcher.end() + 1;
+			start = matcher.end();
 		}
 		if (start < input.length()) {
 			result.add(input.substring(start));

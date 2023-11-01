@@ -12,6 +12,7 @@ public final class JavaStyleClassnameMatcherTest {
 		assertTrue(matcher.matches("com.example.FooTest"));
 		assertFalse(matcher.matches("com.example.Foo"));
 		assertFalse(matcher.matches("com.example.foo.FooTest"));
+		assertFalse(matcher.matches("com.example.FooXest"));
 	}
 
 	@Test
@@ -21,6 +22,7 @@ public final class JavaStyleClassnameMatcherTest {
 		assertTrue(matcher.matches("com.example.FooTest"));
 		assertFalse(matcher.matches("com.example.Foo"));
 		assertTrue(matcher.matches("com.example.foo.FooTest"));
+		assertFalse(matcher.matches("com.example.foo.FooXest"));
 	}
 
 }
